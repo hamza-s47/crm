@@ -12,7 +12,7 @@ type Lead struct {
 	Name    string `json:"name"`
 	Company string `json:"company"`
 	Email   string `json:"email"`
-	Phone   int    `gorm:"default:'Not provided'" json:"phone"`
+	Phone   string `gorm:"default:'Not provided'" json:"phone"`
 }
 
 func GetLeads(c *fiber.Ctx) error {
@@ -41,18 +41,19 @@ func GetLead(c *fiber.Ctx) error {
 func NewLead(c *fiber.Ctx) error {
 	db := database.DBConn
 	lead := new(Lead)
+
 	if err := c.BodyParser(lead); err != nil {
-		return c.Status(400).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})
 	}
 
 	if err := db.Create(&lead).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create lead",
 		})
 	}
-	return c.Status(201).JSON(lead)
+	return c.Status(fiber.StatusCreated).JSON(lead)
 }
 
 func DeleteLead(c *fiber.Ctx) error {
